@@ -1,0 +1,42 @@
+version: '3.7'
+
+networks:
+  cats:
+    driver: bridge 
+
+services:
+  # app:
+  #   build: 
+  #     context: .
+  #   env_file:
+  #     - .env
+  #   container_name: app_auth_lks
+  #   entrypoint: "/test-tesk-cats/docker/build.sh"
+  #   networks:
+  #     - auth_lks
+  #   depends_on:
+  #     - redis_cats
+  #     - db
+  #   links:
+  #     - db
+  #     - redis_cats
+
+  db:
+    image: postgres
+    container_name: db_cats
+    ports:
+      - 4545:5432
+    env_file:
+      - .env
+    networks:
+      - cats
+
+  redis:
+    image: redis
+    container_name: redis_cats
+    ports:
+      - 5454:6379
+    networks:
+      - cats
+    
+  
