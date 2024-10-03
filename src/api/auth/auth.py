@@ -23,7 +23,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Table_Admins.password, Table_Admins.id, Table_Admins.role)
+    data = await session.execute(select(Table_Admins.password, Table_Admins.id, Table_Admins.role, Table_Admins.active)
                                  .where(Table_Admins.username == user_data.username))
     data = data.mappings().first()
     
@@ -32,6 +32,9 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     
     if not check_password(user_data.password, data.password):
         return status_error_401()
+    
+    if not data.active:
+        return status_error_403()
     
     payload = {
         "sup": data.id,

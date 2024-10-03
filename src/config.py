@@ -22,7 +22,7 @@ class Auth(BaseModel):
     public_key: Path = BASE_DIR / "src" / "certs" / "jwt-public.pem"
     private_key: Path = BASE_DIR / "src" / "certs" / "jwt-private.pem"
     algorithm: str = "RS256"
-    access: datetime.timedelta = datetime.timedelta(minutes=1)
+    access: datetime.timedelta = datetime.timedelta(minutes=15)
     refresh: datetime.timedelta = datetime.timedelta(hours=3)
     type_token: Type_Token = Type_Token()
     

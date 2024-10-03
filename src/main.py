@@ -14,7 +14,7 @@ app = FastAPI(
 
 @app.get("/")
 def title():
-    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="not found")
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content="Cats are good")
 
 @app.on_event("startup")
 async def startup_event():

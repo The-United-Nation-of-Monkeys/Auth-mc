@@ -14,3 +14,4 @@ class Table_Admins(Base):
     role: Mapped[Roles] = mapped_column(Enum(Roles), default=Roles.admin.value)
     username: Mapped[str]
     password: Mapped[bytes]
+    active: Mapped[bool] = mapped_column(default=True)
