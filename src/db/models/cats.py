@@ -2,8 +2,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import text
 import os, sys, datetime
 
-sys.path.append(os.path.join(sys.path[0][:-13]))
-from src.db.configuration import Base
+sys.path.append(os.path.join(sys.path[0][:-9]))
+from db.configuration import Base
 
 
 class Table_Cats(Base):

@@ -5,12 +5,12 @@ from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from src.db.configuration import get_session
-from src.db.models.admin import Table_Admins
-from src.api.security.token import encode, decode
-from src.api.security.password import check_password
-from src.config import settings
-from src.api.responses import *
+from db.configuration import get_session
+from db.models.admin import Table_Admins
+from api.security.token import encode, decode
+from api.security.password import check_password
+from config import settings
+from api.responses import *
 
 router = APIRouter(
     prefix="/auth",

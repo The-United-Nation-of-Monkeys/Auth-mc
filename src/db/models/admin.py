@@ -3,8 +3,8 @@ from sqlalchemy import text, Enum
 import os, sys
 
 sys.path.append(os.path.join(sys.path[0][:-13]))
-from src.db.configuration import Base
-from src.db.roles import Roles
+from db.configuration import Base
+from db.roles import Roles
 
     
 class Table_Admins(Base):

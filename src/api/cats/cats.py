@@ -3,14 +3,14 @@ from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, update, delete
 
-from src.db.configuration import get_session
-from src.config import settings
-from src.api.security.token import decode
-from src.db.models.cats import *
-from src.api.responses import *
-from src.api.security.permissions import *
-from src.db.roles import Roles
-from src.api.cats.schemas import *
+from db.configuration import get_session
+from config import settings
+from api.security.token import decode
+from db.models.cats import *
+from api.responses import *
+from api.security.permissions import *
+from db.roles import Roles
+from api.cats.schemas import *
 
 router = APIRouter(
     prefix="/cats",

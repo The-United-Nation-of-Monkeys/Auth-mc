@@ -1,9 +1,9 @@
 from sqlalchemy import select
 
-from src.api.security.token import decode
-from src.api.responses import *
-from src.db.configuration import async_session_factory
-from src.db.models.admin import Table_Admins
+from api.security.token import decode
+from api.responses import *
+from db.configuration import async_session_factory
+from db.models.admin import Table_Admins
 
 
 async def check_permission(permission: str, token: str | bytes | None = None):

@@ -13,6 +13,3 @@ def check_password(new_password: str, password: bytes) -> bool:
     
     return checkpw(new_password, password)
 
-
-
-print(encode_password("asd"))

@@ -1,7 +1,7 @@
 
 import datetime, jwt
 
-from src.config import settings
+from config import settings
 
 async def encode(
     type_token: str,
