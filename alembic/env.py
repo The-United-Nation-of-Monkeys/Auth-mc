@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 import sys, os
 
-sys.path.append(os.path.join(sys.path[0][:-7]))
+sys.path.append(os.path.join(sys.path[0], 'src'))
 from src.config import settings
 from src.db.models.cats import *
 from src.db.models.admin import *

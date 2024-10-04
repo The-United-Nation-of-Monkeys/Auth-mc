@@ -2,12 +2,12 @@ from sqlalchemy import insert
 
 import asyncio, sys, os
 
-sys.path.append(os.path.join(sys.path[0][:-6]))
+sys.path.append(os.path.join(sys.path[0][:-6], "src"))
 
-from src.db.configuration import async_session_factory
-from src.db.models.admin import Table_Admins
-from src.db.models.cats import Table_Cats
-from src.api.security.password import encode_password
+from db.configuration import async_session_factory
+from db.models.admin import Table_Admins
+from db.models.cats import Table_Cats
+from api.security.password import encode_password
 
 async def start():
     async with async_session_factory() as session:
