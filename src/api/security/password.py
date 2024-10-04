@@ -15,4 +15,4 @@ def check_password(new_password: str, password: bytes) -> bool:
 
 
 
-# print(encode_password("asd"))
+print(encode_password("asd"))
