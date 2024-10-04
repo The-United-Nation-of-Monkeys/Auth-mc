@@ -51,7 +51,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
 
 @router.get("/access")
 async def get_access(response: Response, 
-                     request: Request, 
+                     request: Request,
+                     session: AsyncSession = Depends(get_session) 
                      ):
     refresh_token = request.cookies.get(settings.auth.type_token.refresh)
         
@@ -63,6 +64,14 @@ async def get_access(response: Response,
         
     except:
         return status_error_401()
+    
+
+    user_data = await session.execute(select(Table_Admins.active)
+                            .where(Table_Admins.id == payload["sup"]))
+    user_data = user_data.mappings().first()
+        
+    if not user_data.active:
+        return status_error_403()
     
     new_payload = {
         "sup": payload["sup"],

@@ -10,3 +10,4 @@ RUN pip install -r req.txt
 
 COPY . .
 
+RUN chmod a+x docker/*.sh

@@ -5,21 +5,23 @@ networks:
     driver: bridge 
 
 services:
-  # app:
-  #   build: 
-  #     context: .
-  #   env_file:
-  #     - .env
-  #   container_name: app_auth_lks
-  #   entrypoint: "/test-tesk-cats/docker/build.sh"
-  #   networks:
-  #     - auth_lks
-  #   depends_on:
-  #     - redis_cats
-  #     - db
-  #   links:
-  #     - db
-  #     - redis_cats
+  app:
+    build: 
+      context: .
+    env_file:
+      - .env
+    container_name: app_cats
+    entrypoint: "/test-task-cats/docker/build.sh"
+    ports:
+      - 8000:8000
+    networks:
+      - cats
+    depends_on:
+      - redis
+      - db
+    links:
+      - db
+      - redis
 
   db:
     image: postgres

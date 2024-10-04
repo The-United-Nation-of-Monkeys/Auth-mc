@@ -5,7 +5,7 @@ from conftest import base_client
 from src.config import settings
     
 async def test_auth_login(ac: AsyncClient):
-    response = await ac.post("/api/v1/admin/auth/login", auth=("asd", "asd"))
+    response = await ac.post("/api/v1/admin/auth/login", auth=("test", "test"))
     
     assert response.status_code == 200, "no auth"
     
@@ -61,6 +61,9 @@ async def test_update_cat(ac: AsyncClient):
     
 async def test_delete_cat(ac: AsyncClient):
     response = await ac.delete("/api/v1/admin/cats/cat/del/1")
+    response = await ac.delete("/api/v1/admin/cats/cat/del/2")
+    response = await ac.delete("/api/v1/admin/cats/cat/del/3")
+    
     
     assert response.status_code == 200, "no auth"
     

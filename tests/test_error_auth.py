@@ -3,12 +3,12 @@ from httpx import AsyncClient
 from src.config import settings
 
 async def test_error_auth_login_invalid_login(ac: AsyncClient):
-    response = await ac.post("/api/v1/admin/auth/login", auth=("as", "asd"))
+    response = await ac.post("/api/v1/admin/auth/login", auth=("te", "test"))
     
     assert response.status_code == 401, "valid login"
     
 async def test_error_auth_login_invalid_password(ac: AsyncClient):
-    response = await ac.post("/api/v1/admin/auth/login", auth=("asd", "as"))
+    response = await ac.post("/api/v1/admin/auth/login", auth=("test", "te"))
     
     assert response.status_code == 401, "valid password"
     

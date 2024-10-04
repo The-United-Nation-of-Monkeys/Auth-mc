@@ -17,12 +17,9 @@ async def check_permission(permission: str, token: str | bytes | None = None):
         return status_error_401()
     
     async with async_session_factory() as session:
-        user_data = await session.execute(select(Table_Admins.active, Table_Admins.role)
+        user_data = await session.execute(select(Table_Admins.role)
                                .where(Table_Admins.id == data["sup"]))
         user_data = user_data.mappings().first()
-        
-        if not user_data.active:
-            return status_error_403()
     
         if data["role"] != permission != user_data.role.value:
             return status_error_403()
