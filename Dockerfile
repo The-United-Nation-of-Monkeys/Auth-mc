@@ -1,8 +1,8 @@
 FROM python:3.12
 
-RUN mkdir test-task-cats
+RUN mkdir LKS-Auth-mc
 
-WORKDIR /test-task-cats
+WORKDIR /LKS-Auth-mc
 
 COPY req.txt .
 

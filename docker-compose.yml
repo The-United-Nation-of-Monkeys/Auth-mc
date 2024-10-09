@@ -1,7 +1,7 @@
 version: '3.7'
 
 networks:
-  cats:
+  auth:
     driver: bridge 
 
 services:
@@ -10,35 +10,34 @@ services:
       context: .
     env_file:
       - .env
-    container_name: app_cats
-    entrypoint: "/test-task-cats/docker/build.sh"
+    container_name: mc_auth
+    entrypoint: "/LKS-Auth-mc/docker/build.sh"
     ports:
       - 8000:8000
     networks:
-      - cats
+      - auth
     depends_on:
-      - redis
       - db
     links:
       - db
-      - redis
+
 
   db:
     image: postgres
-    container_name: db_cats
+    container_name: db_auth
     ports:
       - 4545:5432
     env_file:
       - .env
     networks:
-      - cats
+      - auth
 
-  redis:
-    image: redis
-    container_name: redis_cats
-    ports:
-      - 5454:6379
-    networks:
-      - cats
+  # redis:
+  #   image: redis
+  #   container_name: redis_cats
+  #   ports:
+  #     - 5454:6379
+  #   networks:
+  #     - auth
     
   
