@@ -3,14 +3,16 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
 
 from db.configuration import get_session
-from db.models.admin import Table_Admins
+from db.models.users import Table_Users
+from db.models.roles import *
 from api.security.token import encode, decode
-from api.security.password import check_password
+from api.security.password import check_password, encode_password
 from config import settings
 from api.responses import *
+from api.auth.schemas import Schema_Register
 
 router = APIRouter(
     prefix="/auth",
@@ -23,8 +25,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Table_Admins.password, Table_Admins.id, Table_Admins.role, Table_Admins.active)
-                                 .where(Table_Admins.username == user_data.username))
+    data = await session.execute(select(Table_Users.password, Table_Users.id, Table_Users.role_id, Table_Users.active)
+                                 .where(Table_Users.login == user_data.username))
     data = data.mappings().first()
     
     if not data:
@@ -38,7 +40,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     
     payload = {
         "sup": data.id,
-        "role": data.role.value
+        "role": data.role_id
     }
     
     access_token = await encode(settings.auth.type_token.access, payload)
@@ -49,49 +51,42 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     
     return {"status": "success"}  
 
-@router.get("/access")
-async def get_access(response: Response, 
-                     request: Request,
+@router.post("/register")
+async def get_access(user_data: Schema_Register,
                      session: AsyncSession = Depends(get_session) 
                      ):
-    refresh_token = request.cookies.get(settings.auth.type_token.refresh)
-        
-    if not refresh_token:
-        return status_error_401()
+    role = await session.execute(select(Table_Roles.id, Table_Roles.role).where(Table_Roles.role == user_data.role))
     
     try:
-        payload = await decode(refresh_token)
+        role = role.mappings().first()
+        role_id = role.id
+        
+        role = role.role
         
     except:
-        return status_error_401()
+        return status_error_400("invalid role")
     
-
-    user_data = await session.execute(select(Table_Admins.active)
-                            .where(Table_Admins.id == payload["sup"]))
-    user_data = user_data.mappings().first()
+    if role == Base_Roles.admin.value : return status_error_400("invalid  role")
+    
+    
+    password = encode_password(user_data.password)
+    
+    try: 
+        await session.execute(insert(Table_Users).values({
+            Table_Users.login: user_data.login,
+            Table_Users.password: password,
+            Table_Users.role_id: role_id
+        }))
+    
+        await session.commit()
         
-    if not user_data.active:
-        return status_error_403()
+    except:
+        return await status_error_400("invalid login")
     
-    new_payload = {
-        "sup": payload["sup"],
-        "role": payload["role"],
-    }
+    return status_success_200()
     
-    new_access_token = await encode(settings.auth.type_token.access, new_payload)
-    new_refresh_token = await encode(settings.auth.type_token.refresh, new_payload)
+     
 
-    
-    response.set_cookie(settings.auth.type_token.access, new_access_token)
-    response.set_cookie(settings.auth.type_token.refresh, new_refresh_token)
-     
-    return {"status": "success"}
-     
-    
-@router.get("/logout")
-async def logout(response: Response):
-    response.set_cookie(settings.auth.type_token.access, None)
-    response.set_cookie(settings.auth.type_token.refresh, None)
-    
-    return {"status": "success"}
-    
+
+
+#вернуть все роли, кафка, токен пихать в barer 

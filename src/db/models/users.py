@@ -4,6 +4,7 @@ import os, sys, datetime
 
 sys.path.append(os.path.join(sys.path[0][:-9]))
 from db.configuration import Base
+# from db.models import Table_Roles
 
 class Table_Users(Base):
     __tablename__ = "users"
@@ -12,7 +13,9 @@ class Table_Users(Base):
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[bytes]
     role_id: Mapped[str] = mapped_column(ForeignKey("roles.id"))
-    role = relationship("roles",
-        back_populates="id", uselist=False
-    )
     date_register: Mapped[datetime.datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    active: Mapped[bool] = mapped_column(default=True)
+    
+    role = relationship("Table_Roles",
+        back_populates="user", uselist=False
+    )

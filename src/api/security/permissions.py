@@ -1,27 +1,18 @@
 from sqlalchemy import select
+from functools import wraps
+from fastapi import Request
 
 from api.security.token import decode
 from api.responses import *
 from db.configuration import async_session_factory
-from db.models.admin import Table_Admins
+from config import settings
 
-
-async def check_permission(permission: str, token: str | bytes | None = None):
-    if not token:
-        return status_error_401()
+def check_person(func):
     
-    try:
-        data = await decode(token)
+    @wraps
+    async def wrapper(*args, **kwargs):
+        token: Request = kwargs.get("request")
+        token = token.cookies.get(settings.auth.type_token.access)
         
-    except:
-        return status_error_401()
-    
-    async with async_session_factory() as session:
-        user_data = await session.execute(select(Table_Admins.role)
-                               .where(Table_Admins.id == data["sup"]))
-        user_data = user_data.mappings().first()
-    
-        if data["role"] != permission != user_data.role.value:
-            return status_error_403()
-    
-    return True
+        if not token:
+            status_error_401()    
