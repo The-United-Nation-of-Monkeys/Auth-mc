@@ -4,6 +4,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert
+from sqlalchemy.exc import IntegrityError
 
 from db.configuration import get_session
 from db.models.users import Table_Users
@@ -12,7 +13,7 @@ from api.security.token import encode, decode
 from api.security.password import check_password, encode_password
 from config import settings
 from api.responses import *
-from api.auth.schemas import Schema_Register
+from api.auth.schemas import *
 
 router = APIRouter(
     prefix="/auth",
@@ -46,8 +47,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     access_token = await encode(settings.auth.type_token.access, payload)
     refresh_token = await encode(settings.auth.type_token.refresh, payload)
     
-    response.set_cookie(settings.auth.type_token.access, access_token)
-    response.set_cookie(settings.auth.type_token.refresh, refresh_token)
+    response.headers.append("accessToken", access_token)
+    response.headers.append("refreshToken", refresh_token)
     
     return {"status": "success"}  
 
@@ -55,38 +56,53 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
 async def get_access(user_data: Schema_Register,
                      session: AsyncSession = Depends(get_session) 
                      ):
-    role = await session.execute(select(Table_Roles.id, Table_Roles.role).where(Table_Roles.role == user_data.role))
+    role = await session.execute(select(Table_Roles.id, Table_Roles.role, Table_Roles.special)
+                                 .where(Table_Roles.role == user_data.role))
     
     try:
         role = role.mappings().first()
         role_id = role.id
         
-        role = role.role
-        
-    except:
+    except AttributeError:
         return status_error_400("invalid role")
-    
-    if role == Base_Roles.admin.value : return status_error_400("invalid  role")
-    
     
     password = encode_password(user_data.password)
     
     try: 
-        await session.execute(insert(Table_Users).values({
-            Table_Users.login: user_data.login,
-            Table_Users.password: password,
-            Table_Users.role_id: role_id
-        }))
-    
+        if role.special == True:
+            await session.execute(insert(Table_Users).values({
+                Table_Users.login: user_data.login,
+                Table_Users.password: password,
+                Table_Users.role_id: role_id,
+                Table_Users.active: False
+            }))
+            detail = "register but not activate"
+        
+        else:
+            await session.execute(insert(Table_Users).values({
+                    Table_Users.login: user_data.login,
+                    Table_Users.password: password,
+                    Table_Users.role_id: role_id
+                }))
+            detail = None
+        
         await session.commit()
         
-    except:
+    except IntegrityError:
         return await status_error_400("invalid login")
     
-    return status_success_200()
+    return status_success_200(detail)
+
+
+@router.get("/role/all")
+async def get_role(session: AsyncSession = Depends(get_session)):
+    data = await session.execute(select(Table_Roles.role, Table_Roles.special))
+    data = data.mappings().all()
+    
+    return status_success_200(data)
     
      
 
 
 
-#вернуть все роли, кафка, токен пихать в barer 
+#кафка

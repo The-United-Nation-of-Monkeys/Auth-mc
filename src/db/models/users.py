@@ -12,7 +12,7 @@ class Table_Users(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[bytes]
-    role_id: Mapped[str] = mapped_column(ForeignKey("roles.id"))
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"))
     date_register: Mapped[datetime.datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     active: Mapped[bool] = mapped_column(default=True)
     

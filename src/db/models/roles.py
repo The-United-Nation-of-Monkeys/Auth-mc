@@ -10,10 +10,14 @@ class Table_Roles(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True)
     role: Mapped[str] = mapped_column(unique=True)
+    special: Mapped[bool] = mapped_column(default=False)
     
     user = relationship("Table_Users",
         back_populates="role", uselist=False
     )
+    
+    
+    #добавить параметр важные роли или нет, надо подтверждение или нет 
     
 class Base_Roles(Enum):
     student = "student"

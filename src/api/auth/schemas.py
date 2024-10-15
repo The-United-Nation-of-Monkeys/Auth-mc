@@ -18,3 +18,9 @@ class Schema_Register(BaseModel):
     #             return status_error_400("Student must have group")
     
     
+class BearerTokenSchema(BaseModel):
+    accessToken: str
+    refreshToken: str
+    
+    
+    

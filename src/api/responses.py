@@ -4,7 +4,7 @@ def status_error_401():
     
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-def status_success_200(detail: str | dict | None = None):
+def status_success_200(detail: str | dict | list | None = None):
     
     return {"status": "success", "detail": detail}
 
