@@ -26,8 +26,10 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Table_Users.password, Table_Users.id, Table_Users.role_id, Table_Users.active)
+    data = await session.execute(select(Table_Users.password, Table_Users.id, Table_Users.active, Table_Roles.role)
+                                 .join(Table_Roles, Table_Roles.id == Table_Users.role_id)
                                  .where(Table_Users.login == user_data.username))
+    
     data = data.mappings().first()
     
     if not data:
@@ -40,8 +42,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
         return status_error_403()
     
     payload = {
-        "sup": data.id,
-        "role": data.role_id
+        "sup": str(data.id),
+        "role": data.role
     }
     
     access_token = await encode(settings.auth.type_token.access, payload)
@@ -50,7 +52,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     response.headers.append("accessToken", access_token)
     response.headers.append("refreshToken", refresh_token)
     
-    return {"status": "success"}  
+    return status_success_200()
 
 @router.post("/register")
 async def get_access(user_data: Schema_Register,

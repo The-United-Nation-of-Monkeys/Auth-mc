@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import text, ForeignKey
-import os, sys, datetime
+from sqlalchemy.dialects.postgresql import UUID
+import os, sys, datetime, uuid
 
 sys.path.append(os.path.join(sys.path[0][:-9]))
 from db.configuration import Base
@@ -9,7 +10,7 @@ from db.configuration import Base
 class Table_Users(Base):
     __tablename__ = "users"
     
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[bytes]
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"))

@@ -30,10 +30,14 @@ class Redis(BaseModel):
     host: str = os.environ.get("REDIS_HOST")
     port: str = os.environ.get("REDIS_PORT")
     
+class Mail(BaseModel):
+    mail: str = os.environ.get("MAIL")
+    password: str = os.environ.get("MAIL_PASSWORD")
+    
 class Settings(BaseModel):
     database: DataBase = DataBase()
     auth: Auth = Auth()
     redis: Redis = Redis()
+    mail: Mail = Mail()
     
 settings = Settings()
-    

@@ -7,10 +7,10 @@ from alembic import context
 import sys, os
 
 sys.path.append(os.path.join(sys.path[0], 'src'))
-from src.config import settings
-from src.db.models.cats import *
-from src.db.models.admin import *
-from src.db.configuration import Base
+from config import settings
+from db.models.users import *
+from db.models.roles import *
+from db.configuration import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

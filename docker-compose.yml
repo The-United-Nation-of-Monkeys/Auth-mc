@@ -9,7 +9,7 @@ services:
     build: 
       context: .
     env_file:
-      - .env
+      - .env-non-dev
     container_name: mc_auth
     entrypoint: "/LKS-Auth-mc/docker/build.sh"
     ports:
@@ -28,7 +28,7 @@ services:
     ports:
       - 4545:5432
     env_file:
-      - .env
+      - .env-non-dev
     networks:
       - auth
 
