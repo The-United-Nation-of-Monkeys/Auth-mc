@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 import os, sys
 
 sys.path.append(os.path.join(sys.path[0][:-2]))
-from config import settings
+from src.config import settings
 
 class Base(DeclarativeBase):
     pass

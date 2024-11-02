@@ -6,14 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert
 from sqlalchemy.exc import IntegrityError
 
-from db.configuration import get_session
-from db.models.users import Table_Users
-from db.models.roles import *
-from api.security.token import encode, decode
-from api.security.password import check_password, encode_password
-from config import settings
-from api.responses import *
-from api.auth.schemas import *
+from src.db.configuration import get_session
+from src.db.models.users import Table_Users
+from src.db.models.roles import *
+from src.api.security.token import encode, decode
+from src.api.security.password import check_password, encode_password
+from src.config import settings
+from src.api.responses import *
+from src.api.auth.schemas import *
+from src.broker.producer import Broker
+
 
 router = APIRouter(
     prefix="/auth",
@@ -49,10 +51,9 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     access_token = await encode(settings.auth.type_token.access, payload)
     refresh_token = await encode(settings.auth.type_token.refresh, payload)
     
-    response.headers.append("accessToken", access_token)
-    response.headers.append("refreshToken", refresh_token)
+    response.headers.append("accessToken", "Bearer" + access_token)
     
-    return status_success_200()
+    return status_success_200(refresh_token)
 
 @router.post("/register")
 async def get_access(user_data: Schema_Register,
@@ -60,39 +61,39 @@ async def get_access(user_data: Schema_Register,
                      ):
     role = await session.execute(select(Table_Roles.id, Table_Roles.role, Table_Roles.special)
                                  .where(Table_Roles.role == user_data.role))
-    
     try:
         role = role.mappings().first()
         role_id = role.id
-        
+
     except AttributeError:
         return status_error_400("invalid role")
-    
     password = encode_password(user_data.password)
     
-    try: 
-        if role.special == True:
-            await session.execute(insert(Table_Users).values({
+    try:
+        if role.special:
+            user_id = await session.execute(insert(Table_Users).values({
                 Table_Users.login: user_data.login,
                 Table_Users.password: password,
                 Table_Users.role_id: role_id,
                 Table_Users.active: False
-            }))
+            }).returning(Table_Users.id))
             detail = "register but not activate"
-        
+
         else:
-            await session.execute(insert(Table_Users).values({
+            user_id = await session.execute(insert(Table_Users).values({
                     Table_Users.login: user_data.login,
                     Table_Users.password: password,
                     Table_Users.role_id: role_id
-                }))
+                }).returning(Table_Users.id))
             detail = None
-        
+
         await session.commit()
         
     except IntegrityError:
-        return await status_error_400("invalid login")
-    
+        return await status_error_409("invalid login")
+
+    Broker.send_message('auth', user_data.model_dump())
+
     return status_success_200(detail)
 
 
@@ -107,4 +108,4 @@ async def get_role(session: AsyncSession = Depends(get_session)):
 
 
 
-#кафка
+#кафка и подтверждение почты 

@@ -2,10 +2,10 @@ from sqlalchemy import select
 from functools import wraps
 from fastapi import Request
 
-from api.security.token import decode
-from api.responses import *
-from db.configuration import async_session_factory
-from config import settings
+from src.api.security.token import decode
+from src.api.responses import *
+from src.db.configuration import async_session_factory
+from src.config import settings
 
 def check_person(func):
     

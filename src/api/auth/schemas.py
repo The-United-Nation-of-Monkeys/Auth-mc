@@ -1,11 +1,11 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, EmailStr
 
-from db.models.roles import Base_Roles
-from api.responses import status_error_400
+from src.db.models.roles import Base_Roles
+from src.api.responses import status_error_400
 
 class Schema_Register(BaseModel):
     name: str
-    login: str
+    login: EmailStr
     password: str
     role: str | None = None
     # group: str | None = None

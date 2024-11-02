@@ -1,0 +1,1 @@
+sudo docker compose exec kafka kafka-topics --create --topic auth --bootstrap-server localhost:19092 --partitions 5 --replication-factor 1

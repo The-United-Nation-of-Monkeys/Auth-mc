@@ -34,10 +34,17 @@ class Mail(BaseModel):
     mail: str = os.environ.get("MAIL")
     password: str = os.environ.get("MAIL_PASSWORD")
     
+class Broker(BaseModel):
+    host: str = os.environ.get("BROKER_HOST")
+    port: str = os.environ.get("BROKER_PORT")
+    BROKER_URL: str =  f"{host}:{port}"
+    
 class Settings(BaseModel):
     database: DataBase = DataBase()
     auth: Auth = Auth()
     redis: Redis = Redis()
     mail: Mail = Mail()
+    broker: Broker = Broker()
     
 settings = Settings()
+

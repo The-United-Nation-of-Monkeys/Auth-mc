@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 import os, sys, datetime, uuid
 
 sys.path.append(os.path.join(sys.path[0][:-9]))
-from db.configuration import Base
+from src.db.configuration import Base
 # from db.models import Table_Roles
 
 class Table_Users(Base):

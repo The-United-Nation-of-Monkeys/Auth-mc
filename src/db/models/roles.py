@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum
 
-from db.configuration import Base
+from src.db.configuration import Base
 # from db.models import Table_Users
 
 
@@ -16,8 +16,6 @@ class Table_Roles(Base):
         back_populates="role", uselist=False
     )
     
-    
-    #добавить параметр важные роли или нет, надо подтверждение или нет 
     
 class Base_Roles(Enum):
     student = "student"
