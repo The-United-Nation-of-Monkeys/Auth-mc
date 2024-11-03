@@ -3,3 +3,4 @@
 */.pytest_cache/**
 .env*
 .idea*
+#git rm --cached <имя_файла>

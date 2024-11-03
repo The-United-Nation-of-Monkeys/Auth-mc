@@ -1,5 +1,6 @@
 from pathlib import Path
 from pydantic import BaseModel
+from celery import Celery
 import datetime, os, dotenv
 
 BASE_DIR = Path(__file__).parent.parent
@@ -14,7 +15,7 @@ class DataBase(BaseModel):
     password: str = os.environ.get("DB_PASSWORD")
     DATABASE_URL: str = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{name}"
     
-class Type_Token(BaseModel):
+class TypeToken(BaseModel):
     refresh: str = "refresh"
     access: str = "access"
     
@@ -24,11 +25,12 @@ class Auth(BaseModel):
     algorithm: str = "RS256"
     access: datetime.timedelta = datetime.timedelta(minutes=15)
     refresh: datetime.timedelta = datetime.timedelta(hours=3)
-    type_token: Type_Token = Type_Token()
+    type_token: TypeToken = TypeToken()
     
 class Redis(BaseModel):
     host: str = os.environ.get("REDIS_HOST")
     port: str = os.environ.get("REDIS_PORT")
+    REDIS_URL: str = f"redis://{host}:{port}/0"
     
 class Mail(BaseModel):
     mail: str = os.environ.get("MAIL")
@@ -38,13 +40,22 @@ class Broker(BaseModel):
     host: str = os.environ.get("BROKER_HOST")
     port: str = os.environ.get("BROKER_PORT")
     BROKER_URL: str =  f"{host}:{port}"
-    
+
+class Server(BaseModel):
+    host: str = os.environ.get("SERVER_HOST")
+    port: str = os.environ.get("SERVER_PORT")
+    protocol: str = os.environ.get("SERVER_PROTOCOL")
+    SERVER_URL: str = f"{protocol}://{host}:{port}"
+
 class Settings(BaseModel):
     database: DataBase = DataBase()
     auth: Auth = Auth()
     redis: Redis = Redis()
     mail: Mail = Mail()
     broker: Broker = Broker()
-    
-settings = Settings()
+    server: Server = Server()
 
+
+settings = Settings()
+# celery_client = Celery('mc-auth', backend='redis://redis:6379/0')
+print(settings.redis.REDIS_URL)

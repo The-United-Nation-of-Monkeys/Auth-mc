@@ -1,13 +1,15 @@
 from fastapi import Depends, APIRouter
+from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy import update
+from sqlalchemy.exc import DBAPIError
 
 from src.api.responses import *
-from src.api.confirmation.mail import *
 from src.db.configuration import get_session
 from src.db.models import Table_Users, Table_Roles
-from sqlalchemy.exc import DBAPIError
+from src.api.confirmation.forms import active_account_form
+
 
 router = APIRouter(
     prefix="/confirmation",
@@ -16,7 +18,8 @@ router = APIRouter(
 
 @router.get("/access")
 async def access_user(id: str, session: AsyncSession = Depends(get_session)):
-    query = select(Table_Roles.special).join(Table_Users, Table_Users.role_id == Table_Roles.id).where(Table_Users.id == id)
+    query = select(Table_Roles.special).join(Table_Users,
+                                             Table_Users.role_id == Table_Roles.id).where(Table_Users.id == id)
     try:
         user_role = await session.execute(query)
 
@@ -30,4 +33,4 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
     await session.execute(update_query)
     await session.commit()
 
-    return status_success_200()
+    return HTMLResponse(active_account_form)

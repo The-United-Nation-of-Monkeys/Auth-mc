@@ -79,6 +79,25 @@ services:
     networks:
       - auth
 
+  redis:
+    image: redis
+    container_name: redis_auth
+    ports:
+      - "5454:6379"
+    networks:
+      - auth
+
+#  celery:
+#    build: .
+##    image: celery
+#    container_name: celery_auth
+#    restart: always
+#    networks:
+#      - auth
+#    depends_on:
+#      - redis
+#      - kafka
+
 
   app:
     build:
@@ -87,11 +106,14 @@ services:
       - .env-non-dev
     container_name: mc_auth
     ports:
-      - "8080:8000"
+      - "8001:8000"
     networks:
       - auth
+    restart: always
     depends_on:
+#      - celery
       - db
       - kafka
+      - redis
 
 

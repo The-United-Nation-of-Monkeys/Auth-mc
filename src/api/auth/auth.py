@@ -1,3 +1,7 @@
+from dis import specialized
+from importlib import reload
+from mailcap import lineno_sort_key
+
 from fastapi import APIRouter, Request, Depends, HTTPException, status, Response, Cookie
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -15,6 +19,7 @@ from src.config import settings
 from src.api.responses import *
 from src.api.auth.schemas import *
 from src.broker.producer import Broker
+from src.notification.mail import send_register_mail
 
 
 router = APIRouter(
@@ -67,34 +72,34 @@ async def get_access(user_data: Schema_Register,
 
     except AttributeError:
         return status_error_400("invalid role")
+
     password = encode_password(user_data.password)
     
     try:
-        if role.special:
-            user_id = await session.execute(insert(Table_Users).values({
-                Table_Users.login: user_data.login,
-                Table_Users.password: password,
-                Table_Users.role_id: role_id,
-                Table_Users.active: False
-            }).returning(Table_Users.id))
-            detail = "register but not activate"
+        user_id = await session.execute(insert(Table_Users).values({
+            Table_Users.login: user_data.login,
+            Table_Users.password: password,
+            Table_Users.role_id: role_id
+        }).returning(Table_Users.id))
 
-        else:
-            user_id = await session.execute(insert(Table_Users).values({
-                    Table_Users.login: user_data.login,
-                    Table_Users.password: password,
-                    Table_Users.role_id: role_id
-                }).returning(Table_Users.id))
-            detail = None
-
-        await session.commit()
+        detail = {"message": "register but not activate"}
         
     except IntegrityError:
         return await status_error_409("invalid login")
 
-    Broker.send_message('auth', user_data.model_dump())
+    if not role.special:
+        send_register_mail(recipient=user_data.login, name=user_data.name,
+                       link=f"{settings.server.SERVER_URL}/confirmation/access?id={user_id.scalar()}")
 
-    return status_success_200(detail)
+    if role.special:
+        detail.update(special=True)
+
+    else:
+        detail.update(special=False)
+
+    Broker.send_message('auth', user_data.model_dump(exclude={"password"})) # добавить атрибут special чтоб потом можно было определять кто это
+    await session.commit()
+    return status_success_201(detail)
 
 
 @router.get("/role/all")
