@@ -79,25 +79,35 @@ services:
     networks:
       - auth
 
-  redis:
-    image: redis
-    container_name: redis_auth
-    ports:
-      - "5454:6379"
-    networks:
-      - auth
+  # redis:
+  #   image: redis
+  #   env_file: .env-non-dev
+  #   container_name: redis_auth
+  #   ports:
+  #     - "5454:6379"
+  #   networks:
+  #     - auth
 
 #  celery:
 #    build: .
 ##    image: celery
 #    container_name: celery_auth
+#    command: celery -A src.config:celery_client worker --loglevel=info &
 #    restart: always
 #    networks:
 #      - auth
 #    depends_on:
 #      - redis
 #      - kafka
-
+#
+#  celery:
+#    build: .
+#    env_file: .env-non-dev
+#    command: "/docker/celery_build.sh"
+#    restart: always
+#    depends_on:
+#      - redis
+#      - kafka
 
   app:
     build:

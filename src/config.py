@@ -27,10 +27,10 @@ class Auth(BaseModel):
     refresh: datetime.timedelta = datetime.timedelta(hours=3)
     type_token: TypeToken = TypeToken()
     
-class Redis(BaseModel):
-    host: str = os.environ.get("REDIS_HOST")
-    port: str = os.environ.get("REDIS_PORT")
-    REDIS_URL: str = f"redis://{host}:{port}/0"
+# class Redis(BaseModel):
+#     host: str = os.environ.get("REDIS_HOST")
+#     port: str = os.environ.get("REDIS_PORT")
+#     REDIS_URL: str = f"redis://{host}:{port}/0"
     
 class Mail(BaseModel):
     mail: str = os.environ.get("MAIL")
@@ -57,5 +57,4 @@ class Settings(BaseModel):
 
 
 settings = Settings()
-# celery_client = Celery('mc-auth', backend='redis://redis:6379/0')
-print(settings.redis.REDIS_URL)
+# celery_client = Celery('mc-auth', backend=settings.redis.REDIS_URL)

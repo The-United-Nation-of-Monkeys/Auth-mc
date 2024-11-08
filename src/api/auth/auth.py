@@ -19,7 +19,7 @@ from src.config import settings
 from src.api.responses import *
 from src.api.auth.schemas import *
 from src.broker.producer import Broker
-from src.notification.mail import send_register_mail
+from src.notification.mail import send_register_mail, send_info_not_register_mail
 
 
 router = APIRouter(
@@ -91,13 +91,16 @@ async def get_access(user_data: Schema_Register,
         send_register_mail(recipient=user_data.login, name=user_data.name,
                        link=f"{settings.server.SERVER_URL}/confirmation/access?id={user_id.scalar()}")
 
-    if role.special:
-        detail.update(special=True)
-
     else:
-        detail.update(special=False)
+        send_info_not_register_mail(recipient=user_data.login, name=user_data.name)
 
-    Broker.send_message('auth', user_data.model_dump(exclude={"password"})) # добавить атрибут special чтоб потом можно было определять кто это
+    detail.update(special=role.special)
+    transfer_user_data = user_data.model_dump(exclude={"password"})
+    transfer_user_data.update(
+        specialized=role.special
+    )
+
+    Broker.send_message('auth', transfer_user_data)
     await session.commit()
     return status_success_201(detail)
 

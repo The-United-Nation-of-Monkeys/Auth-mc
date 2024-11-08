@@ -17,7 +17,7 @@ def status_error_403():
 
 def status_error_400(detail: str | dict | None = None):
     
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"detail": detail})
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
 def status_error_409(detail: str | dict | None = None):
     if detail:
