@@ -7,7 +7,7 @@ import asyncio, sys, os
 sys.path.append(os.path.join(sys.path[0][:-6]))
 
 from src.db.configuration import async_session_factory
-from src.api.security.password import encode_password
+from src.security.password import encode_password
 from src.db.models.roles import *
 
 async def start():
