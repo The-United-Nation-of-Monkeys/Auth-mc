@@ -1,25 +1,21 @@
-from dis import specialized
-from importlib import reload
-from mailcap import lineno_sort_key
-
-from fastapi import APIRouter, Request, Depends, HTTPException, status, Response, Cookie
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Response
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert
 from sqlalchemy.exc import IntegrityError
+from pydantic import EmailStr
 
 from src.db.configuration import get_session
 from src.db.models.users import Table_Users
 from src.db.models.roles import *
-from src.api.security.token import encode, decode
-from src.api.security.password import check_password, encode_password
-from src.config import settings
+from src.security.token import encode, decode
+from src.security.password import check_password, encode_password
+from src.config import settings, security
 from src.api.responses import *
 from src.api.auth.schemas import *
 from src.broker.producer import Broker
-from src.notification.mail import send_register_mail, send_info_not_register_mail
+from src.notification.mail import send_register_mail, send_info_special_register_mail, send_switch_password_mail
 
 
 router = APIRouter(
@@ -46,7 +42,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
         return status_error_401()
     
     if not data.active:
-        return status_error_403()
+        return status_error_403("not active account")
     
     payload = {
         "sup": str(data.id),
@@ -92,7 +88,7 @@ async def get_access(user_data: Schema_Register,
                        link=f"{settings.server.SERVER_URL}/confirmation/access?id={user_id.scalar()}")
 
     else:
-        send_info_not_register_mail(recipient=user_data.login, name=user_data.name)
+        send_info_special_register_mail(recipient=user_data.login, name=user_data.name)
 
     detail.update(special=role.special)
     transfer_user_data = user_data.model_dump(exclude={"password"})
@@ -111,9 +107,37 @@ async def get_role(session: AsyncSession = Depends(get_session)):
     data = data.mappings().all()
     
     return status_success_200(data)
+
+
+@router.get("/refresh")
+async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depends(security)],
+                           response: Response,
+                           session: AsyncSession = Depends(get_session)):
+    try:
+        payload = await decode(refresh_token.credentials)
     
-     
-
-
-
-#кафка и подтверждение почты 
+    except Exception:
+        status_error_401()
+        
+    query = (select(Table_Users.password, Table_Users.id, Table_Users.active, Table_Roles.role)
+    .join(Table_Roles, Table_Roles.id == Table_Users.role_id)
+    .where(Table_Users.id == payload["sup"]))
+    user = await session.execute(query)
+    user_info = user.mappings().first()
+    
+    if not user_info:
+        status_error_403("invalid account")
+    
+    if not user_info.get("active"):
+        status_error_403("blocked")
+        
+    new_payload = {
+        "sup": str(user_info["id"]),
+        "role": user_info["role"]
+    }
+    
+    new_refresh_token = await encode(settings.auth.type_token.refresh, new_payload)
+    new_access_token = await encode(settings.auth.type_token.access, new_payload)
+    
+    response.headers.append("accessToken", f"Bearer {new_access_token}")
+    return status_success_200(new_refresh_token)

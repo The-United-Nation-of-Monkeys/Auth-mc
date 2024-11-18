@@ -11,7 +11,9 @@ def status_success_200(detail: str | dict | list | None = None):
     else:
         return {"status": "success"}
 
-def status_error_403():
+def status_error_403(detail: str | dict | None = None):
+    if detail:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
     
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
@@ -22,11 +24,11 @@ def status_error_400(detail: str | dict | None = None):
 def status_error_409(detail: str | dict | None = None):
     if detail:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"detail": detail})
-    else:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"detail": detail})
+    
+    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"detail": detail})
 
 def status_success_201(detail: str | dict | list | None = None):
     if detail:
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"status": "success", "detail": detail})
-    else:
-        return JSONResponse(status_code=status.HTTP_201_CREATEDб, content={"status": "success"})
+    
+    return JSONResponse(status_code=status.HTTP_201_CREATEDб, content={"status": "success"})
