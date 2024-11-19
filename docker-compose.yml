@@ -1,32 +1,10 @@
 version: '3.7'
 
 networks:
-  auth:
-    driver: bridge 
+  net-kafka:
+    external: true
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper
-    env_file:
-      - .env-non-dev
-    ports:
-      - "22181:2181"
-    networks:
-      - auth
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka
-    ports:
-      - "19092:9092"
-      - "9997:9997"
-    networks:
-      - auth
-    depends_on:
-      - zookeeper
-    env_file:
-      - .env-non-dev
 
   db:
     image: postgres
@@ -36,7 +14,7 @@ services:
     env_file:
       - .env-non-dev
     networks:
-      - auth
+      - net-kafka
     volumes:
       - /etc/database/db-auth-mc:/var/lib/postgresql/data
 
@@ -46,7 +24,7 @@ services:
     ports:
       - "5454:6379"
     networks:
-      - auth
+      - net-kafka
     env_file:
       - .env-non-dev
 
@@ -59,11 +37,10 @@ services:
     ports:
       - "8001:8000"
     networks:
-      - auth
+      - net-kafka
     restart: always
     depends_on:
       - redis
       - db
-      - kafka
 
 

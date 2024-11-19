@@ -59,4 +59,5 @@ class Settings(BaseModel):
 
 settings = Settings()
 security = HTTPBearer()
+print(settings.broker.BROKER_URL)
 # celery_client = Celery('mc-auth', backend=settings.redis.REDIS_URL)
