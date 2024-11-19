@@ -13,3 +13,7 @@
 4) запустить docker-compose.yml
 5) запустить файл /docekr/start.py
 6) запустить uvicorn src.main:app --reload или просто запустить файл main.py
+
+
+
+###kafka должная быть запущеная отдельно от этого приложения
