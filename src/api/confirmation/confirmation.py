@@ -34,7 +34,3 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
     await session.commit()
 
     return HTMLResponse(active_account_form)
-
-@router.get("/new/password")
-async def new_password(token: str, email: str):
-    pass

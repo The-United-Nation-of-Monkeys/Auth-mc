@@ -1,5 +1,6 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Form
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import update
 from pydantic import EmailStr
 
 from src.security.keys import generate_rand_key, encode_key, check_key
@@ -9,6 +10,8 @@ from src.broker.redis import redis
 from src.api.responses import status_error_400
 from src.api.account.schemas import SSwitchPassword
 from src.db.configuration import get_session
+from src.db.models.users import Table_Users
+from src.security.password import encode_password
 
 
 router = APIRouter(
@@ -25,13 +28,19 @@ async def new_password(email: EmailStr) -> None:
     
     
 @router.patch("/new/password", status_code=status.HTTP_200_OK)
-async def update_password(email: EmailStr, code: str, 
-                          new_password: SSwitchPassword, 
+async def update_password(email: EmailStr, 
+                          code: str, 
+                          new_password: str = Form(), 
                           session: AsyncSession = Depends(get_session)) -> None:
     hashed_code = redis.get_value(email)
     
-    if not check_key(code, hashed_code):
+    if not hashed_code:
+        return status_error_400()
+    elif not check_key(code, hashed_code):
         return status_error_400()
     
-    pass
+    new_hashed_password = encode_password(new_password)
+    query = update(Table_Users).values(password=new_hashed_password)
+    await session.execute(query)
+    await session.commit()
     

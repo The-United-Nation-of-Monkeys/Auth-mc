@@ -14,8 +14,7 @@ def encode_key(key: str) -> str:
     encode_key = hashpw(key, salt)
     return encode_key.decode()
 
-def check_key(new_key: str, key: str) -> bool:
+def check_key(new_key: str, key: bytes) -> bool:
     new_key: bytes = new_key.encode()
-    key: bytes = key.encode()
     
     return checkpw(new_key, key)

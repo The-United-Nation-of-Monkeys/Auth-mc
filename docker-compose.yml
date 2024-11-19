@@ -42,8 +42,11 @@ services:
 
   redis:
     image: redis
+    container_name: redis_auth
     ports:
       - "5454:6379"
+    networks:
+      - auth
     env_file:
       - .env-non-dev
 

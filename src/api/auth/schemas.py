@@ -6,11 +6,13 @@ from src.api.responses import status_error_400
 
 import enum
 
-class Schema_Register(BaseModel):
+class SchemaRegister(BaseModel):
     name: str
+    lastname: str
+    patronymic: str
     login: EmailStr
     password: str
-    role: str | None = None
+    role: str 
     gender: Literal["male", "female"]
 
 class BearerTokenSchema(BaseModel):

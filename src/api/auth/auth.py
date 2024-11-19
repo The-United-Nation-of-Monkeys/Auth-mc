@@ -15,7 +15,7 @@ from src.config import settings, security
 from src.api.responses import *
 from src.api.auth.schemas import *
 from src.broker.producer import Broker
-from src.notification.mail import send_register_mail, send_info_special_register_mail, send_switch_password_mail
+from src.notification.mail import send_register_mail, send_info_special_register_mail
 
 
 router = APIRouter(
@@ -57,7 +57,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     return status_success_200(refresh_token)
 
 @router.post("/register")
-async def get_access(user_data: Schema_Register,
+async def get_access(user_data: SchemaRegister,
                      session: AsyncSession = Depends(get_session) 
                      ):
     role = await session.execute(select(Table_Roles.id, Table_Roles.role, Table_Roles.special)
