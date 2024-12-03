@@ -1,7 +1,7 @@
 from fastapi import Depends, APIRouter
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy import update
 from sqlalchemy.exc import DBAPIError
 
@@ -33,4 +33,13 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
     await session.execute(update_query)
     await session.commit()
 
-    return HTMLResponse(active_account_form)
+    return HTMLResponse(active_account_form.format(status="активирована"))
+
+
+@router.get("/delete")
+async def delete_account(id: str, session: AsyncSession = Depends(get_session)):
+    query = delete(Table_Users).where(Table_Users.id == id, Table_Users.active == False)
+    await session.execute(query)
+    await session.commit()
+    
+    return HTMLResponse(active_account_form(status="удалена"))

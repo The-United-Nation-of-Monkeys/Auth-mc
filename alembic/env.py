@@ -8,8 +8,7 @@ import sys, os
 
 sys.path.append(os.path.join(sys.path[0], 'src'))
 from config import settings
-from db.models.users import *
-from db.models.roles import *
+from db.models import Table_Roles, Table_Users
 from db.configuration import Base
 
 # this is the Alembic Config object, which provides

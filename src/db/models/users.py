@@ -16,6 +16,7 @@ class Table_Users(Base):
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"))
     date_register: Mapped[datetime.datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     active: Mapped[bool] = mapped_column(default=False)
+    baned: Mapped[bool] = mapped_column(default=False)
     
     role = relationship("Table_Roles",
         back_populates="user", uselist=False

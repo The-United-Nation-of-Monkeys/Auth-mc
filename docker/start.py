@@ -25,6 +25,10 @@ async def start():
             Table_Roles.role: Base_Roles.student.value,
             Table_Roles.special: False
         }))
+        await session.execute(insert(Table_Roles).values({
+            Table_Roles.role: Base_Roles.guest.values,
+            Table_Roles.special: False
+        }))
         
         
         await session.commit()

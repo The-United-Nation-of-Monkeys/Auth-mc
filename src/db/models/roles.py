@@ -21,3 +21,4 @@ class Base_Roles(Enum):
     student = "student"
     teacher = "teacher"
     admin = "admin"
+    guest = "guest"
