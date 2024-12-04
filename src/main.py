@@ -13,7 +13,7 @@ from src.broker.redis import redis
 from src.api.account.account import router as account_router
 
 app = FastAPI(
-    title="Auth-mc", openapi_prefix="/api/v1"
+    title="Auth-mc", openapi_prefix="/api/v2"
     )
 
 origins = ["*"]

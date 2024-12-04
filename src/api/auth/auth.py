@@ -85,10 +85,11 @@ async def get_access(user_data: SchemaRegister,
 
     if not role.special:
         send_register_mail(recipient=user_data.login, name=user_data.name,
-                       link=f"{settings.server.SERVER_URL}/confirmation/access?id={user_id.scalar()}")
+                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_id.scalar())
 
     else:
-        send_info_special_register_mail(recipient=user_data.login, name=user_data.name)
+        send_info_special_register_mail(recipient=user_data.login, name=user_data.name, 
+                                        link=f"{settings.server.SERVER_URL}/confirmation", id=user_id.scalar())
 
     detail.update(special=role.special)
     transfer_user_data = user_data.model_dump(exclude={"password"})

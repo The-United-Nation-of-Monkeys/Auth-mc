@@ -6,10 +6,10 @@ from src.config import settings
 from src.notification.forms import register_form, special_register_form, switch_password_form
 from src.api.responses import status_error_400
 
-def send_register_mail(recipient: str, name: str, link: str) -> None:
+def send_register_mail(recipient: str, name: str, link: str, id: str) -> None:
     with smtplib.SMTP_SSL("smtp.mail.ru", 465) as session:
         session.login(settings.mail.mail, settings.mail.password)
-        content = register_form.format(name=name, link=link)
+        content = register_form.format(name=name, link=link+f"/access?id={id}", delete_link=link+f"/delete?id={id}")
 
         msg = MIMEMultipart()
         msg["From"] = settings.mail.mail
@@ -26,10 +26,10 @@ def send_register_mail(recipient: str, name: str, link: str) -> None:
         finally:
             session.quit()
 
-def send_info_special_register_mail(recipient: str, name: str) -> None:
+def send_info_special_register_mail(recipient: str, name: str, link: str, id: str) -> None:
     with smtplib.SMTP_SSL("smtp.mail.ru", 465) as session:
         session.login(settings.mail.mail, settings.mail.password)
-        content = special_register_form.format(name=name)
+        content = special_register_form.format(name=name, delete_link=link+f"/delete?id={id}")
 
         msg = MIMEMultipart()
         msg["From"] = settings.mail.mail
@@ -41,6 +41,9 @@ def send_info_special_register_mail(recipient: str, name: str) -> None:
             session.send_message(msg)
 
         except smtplib.SMTPRecipientsRefused:
+            return status_error_400("invalid mail")
+        
+        except smtplib.SMTPDataError:
             return status_error_400("invalid mail")
 
         finally:

@@ -9,6 +9,7 @@ class Table_Roles(Base):
     __tablename__ = "roles"
     
     id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[int] = mapped_column(unique=True)
     role: Mapped[str] = mapped_column(unique=True)
     special: Mapped[bool] = mapped_column(default=False)
     

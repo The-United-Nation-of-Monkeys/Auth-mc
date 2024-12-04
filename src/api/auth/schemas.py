@@ -12,7 +12,7 @@ class SchemaRegister(BaseModel):
     patronymic: str
     login: EmailStr
     password: str
-    role: str 
+    role: str | None = "guest"
     gender: Literal["male", "female"]
 
 class BearerTokenSchema(BaseModel):

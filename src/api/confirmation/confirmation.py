@@ -8,7 +8,7 @@ from sqlalchemy.exc import DBAPIError
 from src.api.responses import *
 from src.db.configuration import get_session
 from src.db.models import Table_Users, Table_Roles
-from src.api.confirmation.forms import active_account_form
+from src.api.confirmation.forms import active_account_form, error_active_form
 
 
 router = APIRouter(
@@ -32,14 +32,24 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
     update_query = update(Table_Users).values(active = True).where(Table_Users.id == id)
     await session.execute(update_query)
     await session.commit()
+    response = active_account_form.format(status_="активирована")
 
-    return HTMLResponse(active_account_form.format(status="активирована"))
+    return HTMLResponse(response)
 
 
 @router.get("/delete")
 async def delete_account(id: str, session: AsyncSession = Depends(get_session)):
+    check_query = select(Table_Users.active).where(Table_Users.id == id)
+    active_query = await session.execute(check_query)
+    active = active_query.scalar()
+    if active:
+        response = error_active_form
+    
+    else:
+        response = active_account_form.format(status_="удалена")
+        
     query = delete(Table_Users).where(Table_Users.id == id, Table_Users.active == False)
     await session.execute(query)
     await session.commit()
     
-    return HTMLResponse(active_account_form(status="удалена"))
+    return HTMLResponse(response)
