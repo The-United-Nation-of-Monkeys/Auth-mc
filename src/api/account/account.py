@@ -10,7 +10,7 @@ from src.broker.redis import redis
 from src.api.responses import status_error_400
 from src.api.account.schemas import SSwitchPassword
 from src.db.configuration import get_session
-from src.db.models.users import Table_Users
+from src.db.models.users import Users
 from src.security.password import encode_password
 
 
@@ -40,7 +40,7 @@ async def update_password(email: EmailStr,
         return status_error_400()
     
     new_hashed_password = encode_password(new_password)
-    query = update(Table_Users).values(password=new_hashed_password)
+    query = update(Users).values(password=new_hashed_password)
     await session.execute(query)
     await session.commit()
     

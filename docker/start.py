@@ -13,21 +13,20 @@ from src.db.models.roles import *
 async def start():
     async with async_session_factory() as session:
 
-        await session.execute(insert(Table_Roles).values({
-            Table_Roles.role: Base_Roles.admin.value,
-            Table_Roles.special: True
+        await session.execute(insert(Roles).values({
+            Roles.role: BaseRoles.admin.value,
+            Roles.special: True,
+            Roles.name: "Админ"
         }))
-        await session.execute(insert(Table_Roles).values({
-            Table_Roles.role: Base_Roles.teacher.value,
-            Table_Roles.special: True
+        await session.execute(insert(Roles).values({
+            Roles.role: BaseRoles.teacher.value,
+            Roles.special: True,
+            Roles.name: "Учитель"
         }))
-        await session.execute(insert(Table_Roles).values({
-            Table_Roles.role: Base_Roles.student.value,
-            Table_Roles.special: False
-        }))
-        await session.execute(insert(Table_Roles).values({
-            Table_Roles.role: Base_Roles.guest.value,
-            Table_Roles.special: False
+        await session.execute(insert(Roles).values({
+            Roles.role: BaseRoles.student.value,
+            Roles.special: False,
+            Roles.name: "Студент"
         }))
         
         

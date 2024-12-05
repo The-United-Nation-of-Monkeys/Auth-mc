@@ -1,2 +1,2 @@
-from .roles import Table_Roles, Base_Roles
-from .users import Table_Users
+from .roles import Roles, BaseRoles
+from .users import Users

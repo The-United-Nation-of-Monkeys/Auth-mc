@@ -5,9 +5,9 @@ import os, sys, datetime, uuid
 
 sys.path.append(os.path.join(sys.path[0][:-9]))
 from src.db.configuration import Base
-# from db.models import Table_Roles
+# from db.models import Roles
 
-class Table_Users(Base):
+class Users(Base):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -18,6 +18,6 @@ class Table_Users(Base):
     active: Mapped[bool] = mapped_column(default=False)
     baned: Mapped[bool] = mapped_column(default=False)
     
-    role = relationship("Table_Roles",
+    role = relationship("Roles",
         back_populates="user", uselist=False
     )

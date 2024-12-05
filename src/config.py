@@ -46,7 +46,13 @@ class Server(BaseModel):
     host: str = os.environ.get("SERVER_HOST")
     port: str = os.environ.get("SERVER_PORT")
     protocol: str = os.environ.get("SERVER_PROTOCOL")
-    SERVER_URL: str = f"{protocol}://{host}:{port}"
+    
+    @property
+    def SERVER_URL(self):
+        if self.port:
+            return f"{self.protocol}://{self.host}:{self.port}"
+        else:
+            return f"{self.protocol}://{self.host}"
 
 class Settings(BaseModel):
     database: DataBase = DataBase()

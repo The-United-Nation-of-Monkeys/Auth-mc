@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import EmailStr
 
 from src.db.configuration import get_session
-from src.db.models.users import Table_Users
+from src.db.models.users import Users
 from src.db.models.roles import *
 from src.security.token import encode, decode
 from src.security.password import check_password, encode_password
@@ -29,9 +29,9 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Table_Users.password, Table_Users.id, Table_Users.active, Table_Roles.role)
-                                 .join(Table_Roles, Table_Roles.id == Table_Users.role_id)
-                                 .where(Table_Users.login == user_data.username))
+    data = await session.execute(select(Users.password, Users.id, Users.active, Roles.role)
+                                 .join(Roles, Roles.id == Users.role_id)
+                                 .where(Users.login == user_data.username))
     
     data = data.mappings().first()
     
@@ -52,7 +52,7 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     access_token = await encode(settings.auth.type_token.access, payload)
     refresh_token = await encode(settings.auth.type_token.refresh, payload)
     
-    response.headers.append("accessToken", "Bearer" + access_token)
+    response.headers.append("Authorization", "Bearer " + access_token)
     
     return status_success_200(refresh_token)
 
@@ -60,8 +60,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
 async def get_access(user_data: SchemaRegister,
                      session: AsyncSession = Depends(get_session) 
                      ):
-    role = await session.execute(select(Table_Roles.id, Table_Roles.role, Table_Roles.special)
-                                 .where(Table_Roles.role == user_data.role))
+    role = await session.execute(select(Roles.id, Roles.role, Roles.special)
+                                 .where(Roles.role == user_data.role))
     try:
         role = role.mappings().first()
         role_id = role.id
@@ -72,39 +72,41 @@ async def get_access(user_data: SchemaRegister,
     password = encode_password(user_data.password)
     
     try:
-        user_id = await session.execute(insert(Table_Users).values({
-            Table_Users.login: user_data.login,
-            Table_Users.password: password,
-            Table_Users.role_id: role_id
-        }).returning(Table_Users.id))
+        user_id = await session.execute(insert(Users).values({
+            Users.login: user_data.login,
+            Users.password: password,
+            Users.role_id: role_id
+        }).returning(Users.id))
 
         detail = {"message": "register but not activate"}
+        user_id = user_id.scalar()
         
     except IntegrityError:
         return await status_error_409("invalid login")
 
     if not role.special:
         send_register_mail(recipient=user_data.login, name=user_data.name,
-                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_id.scalar())
+                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_id)
 
     else:
         send_info_special_register_mail(recipient=user_data.login, name=user_data.name, 
-                                        link=f"{settings.server.SERVER_URL}/confirmation", id=user_id.scalar())
+                                        link=f"{settings.server.SERVER_URL}/confirmation", id=user_id)
 
     detail.update(special=role.special)
     transfer_user_data = user_data.model_dump(exclude={"password"})
     transfer_user_data.update(
-        specialized=role.special
+        specialized=role.special,
+        user_id=str(user_id)
     )
 
-    Broker.send_message('auth', transfer_user_data)
     await session.commit()
+    Broker.send_message('auth', transfer_user_data)
     return status_success_201(detail)
 
 
 @router.get("/role/all")
 async def get_role(session: AsyncSession = Depends(get_session)):
-    data = await session.execute(select(Table_Roles.role, Table_Roles.special))
+    data = await session.execute(select(Roles.role, Roles.special, Roles.name))
     data = data.mappings().all()
     
     return status_success_200(data)
@@ -120,9 +122,9 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     except Exception:
         status_error_401()
         
-    query = (select(Table_Users.password, Table_Users.id, Table_Users.active, Table_Roles.role)
-    .join(Table_Roles, Table_Roles.id == Table_Users.role_id)
-    .where(Table_Users.id == payload["sup"]))
+    query = (select(Users.password, Users.id, Users.active, Roles.role)
+    .join(Roles, Roles.id == Users.role_id)
+    .where(Users.id == payload["sup"]))
     user = await session.execute(query)
     user_info = user.mappings().first()
     
@@ -140,5 +142,5 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     new_refresh_token = await encode(settings.auth.type_token.refresh, new_payload)
     new_access_token = await encode(settings.auth.type_token.access, new_payload)
     
-    response.headers.append("accessToken", f"Bearer {new_access_token}")
+    response.headers.append("Authorization", f"Bearer {new_access_token}")
     return status_success_200(new_refresh_token)

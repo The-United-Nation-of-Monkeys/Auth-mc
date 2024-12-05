@@ -7,7 +7,7 @@ from sqlalchemy.exc import DBAPIError
 
 from src.api.responses import *
 from src.db.configuration import get_session
-from src.db.models import Table_Users, Table_Roles
+from src.db.models import Users, Roles
 from src.api.confirmation.forms import active_account_form, error_active_form
 
 
@@ -18,8 +18,8 @@ router = APIRouter(
 
 @router.get("/access")
 async def access_user(id: str, session: AsyncSession = Depends(get_session)):
-    query = select(Table_Roles.special).join(Table_Users,
-                                             Table_Users.role_id == Table_Roles.id).where(Table_Users.id == id)
+    query = select(Roles.special).join(Users,
+                                             Users.role_id == Roles.id).where(Users.id == id)
     try:
         user_role = await session.execute(query)
 
@@ -29,7 +29,7 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
     if user_role.scalar():
         return status_error_403()
 
-    update_query = update(Table_Users).values(active = True).where(Table_Users.id == id)
+    update_query = update(Users).values(active = True).where(Users.id == id)
     await session.execute(update_query)
     await session.commit()
     response = active_account_form.format(status_="активирована")
@@ -39,7 +39,7 @@ async def access_user(id: str, session: AsyncSession = Depends(get_session)):
 
 @router.get("/delete")
 async def delete_account(id: str, session: AsyncSession = Depends(get_session)):
-    check_query = select(Table_Users.active).where(Table_Users.id == id)
+    check_query = select(Users.active).where(Users.id == id)
     active_query = await session.execute(check_query)
     active = active_query.scalar()
     if active:
@@ -48,7 +48,7 @@ async def delete_account(id: str, session: AsyncSession = Depends(get_session)):
     else:
         response = active_account_form.format(status_="удалена")
         
-    query = delete(Table_Users).where(Table_Users.id == id, Table_Users.active == False)
+    query = delete(Users).where(Users.id == id, Users.active == False)
     await session.execute(query)
     await session.commit()
     

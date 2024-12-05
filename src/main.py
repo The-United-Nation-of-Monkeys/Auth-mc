@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 import uvicorn
 
-from src.db.models.roles import Table_Roles
+from src.db.models.roles import Roles
 from src.db.configuration import async_session_factory
 from src.api.auth.auth import router as auth_router
 from src.api.confirmation.confirmation import router as confirmation_router
