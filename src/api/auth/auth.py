@@ -29,19 +29,16 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Users.password, Users.id, Users.active, Roles.role)
+    data = await session.execute(select(Users.password, Users.id, Users.active, Users.baned,Roles.role)
                                  .join(Roles, Roles.id == Users.role_id)
                                  .where(Users.login == user_data.username))
     
     data = data.mappings().first()
     
-    if not data:
+    if not data or not check_password(user_data.password, data.password):
         return status_error_401()
-    
-    if not check_password(user_data.password, data.password):
-        return status_error_401()
-    
-    if not data.active:
+
+    elif not data.active or data.baned:
         return status_error_403("not active account")
     
     payload = {
@@ -122,7 +119,7 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     except Exception:
         status_error_401()
         
-    query = (select(Users.password, Users.id, Users.active, Roles.role)
+    query = (select(Users.password, Users.id, Users.baned,Roles.role)
     .join(Roles, Roles.id == Users.role_id)
     .where(Users.id == payload["sup"]))
     user = await session.execute(query)
@@ -131,7 +128,7 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     if not user_info:
         status_error_403("invalid account")
     
-    if not user_info.get("active"):
+    if user_info["baned"]:
         status_error_403("blocked")
         
     new_payload = {
