@@ -13,10 +13,11 @@ class Users(Base):
     id: Mapped[int] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[bytes]
+    name: Mapped[str] 
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"))
     date_register: Mapped[datetime.datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     active: Mapped[bool] = mapped_column(default=False)
-    baned: Mapped[bool] = mapped_column(default=False)
+    banned: Mapped[bool] = mapped_column(default=False)
     
     role = relationship("Roles",
         back_populates="user", uselist=False

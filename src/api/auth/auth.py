@@ -29,16 +29,16 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
                 response: Response, 
                 session: AsyncSession = Depends(get_session)
                 ):
-    data = await session.execute(select(Users.password, Users.id, Users.active, Users.baned,Roles.role)
+    data = await session.execute(select(Users.password, Users.id, Users.active, Users.banned, Roles.role)
                                  .join(Roles, Roles.id == Users.role_id)
-                                 .where(Users.login == user_data.username))
+                                 .where(Users.login == user_data.username.lower()))
     
     data = data.mappings().first()
     
     if not data or not check_password(user_data.password, data.password):
         return status_error_401()
 
-    elif not data.active or data.baned:
+    elif not data.active or data.banned:
         return status_error_403("not active account")
     
     payload = {
@@ -70,9 +70,10 @@ async def get_access(user_data: SchemaRegister,
     
     try:
         user_id = await session.execute(insert(Users).values({
-            Users.login: user_data.login,
+            Users.login: user_data.login.lower(),
             Users.password: password,
-            Users.role_id: role_id
+            Users.role_id: role_id,
+            Users.name: user_data.name
         }).returning(Users.id))
 
         detail = {"message": "register but not activate"}
@@ -101,6 +102,27 @@ async def get_access(user_data: SchemaRegister,
     return status_success_201(detail)
 
 
+@router.get("/register/repeat", status_code=status.HTTP_204_NO_CONTENT)
+async def repeat_register(email: str, session: AsyncSession = Depends(get_session)) -> None:
+    query = select(Users.id, Users.active, Users.banned, Users.name).where(Users.login == email.lower())
+    user_info = await session.execute(query)
+    user_info = user_info.mappings().first()
+    
+    try:
+        if user_info["active"]:
+            return status_error_400("account is active")
+        elif user_info["banned"]:
+            return status_error_400("account is blocked")
+    except TypeError:
+        return status_error_400("account undefined")
+        
+        
+    send_register_mail(recipient=email, name=user_info["name"],
+                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_info["id"])
+        
+    
+
+
 @router.get("/role/all")
 async def get_role(session: AsyncSession = Depends(get_session)):
     data = await session.execute(select(Roles.role, Roles.special, Roles.name))
@@ -119,7 +141,7 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     except Exception:
         status_error_401()
         
-    query = (select(Users.password, Users.id, Users.baned,Roles.role)
+    query = (select(Users.password, Users.id, Users.banned,Roles.role)
     .join(Roles, Roles.id == Users.role_id)
     .where(Users.id == payload["sup"]))
     user = await session.execute(query)
@@ -128,7 +150,7 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     if not user_info:
         status_error_403("invalid account")
     
-    if user_info["baned"]:
+    if user_info["banned"]:
         status_error_403("blocked")
         
     new_payload = {
@@ -141,3 +163,6 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     
     response.headers.append("Authorization", f"Bearer {new_access_token}")
     return status_success_200(new_refresh_token)
+
+
+
