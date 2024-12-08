@@ -48,10 +48,8 @@ async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]
     
     access_token = await encode(settings.auth.type_token.access, payload)
     refresh_token = await encode(settings.auth.type_token.refresh, payload)
-    
-    response.headers.append("Authorization", "Bearer " + access_token)
-    
-    return status_success_200(refresh_token)
+        
+    return status_success_200({"refresh": refresh_token, "access": access_token})
 
 @router.post("/register")
 async def get_access(user_data: SchemaRegister,
@@ -161,8 +159,8 @@ async def get_access_token(refresh_token: Annotated[HTTPBasicCredentials, Depend
     new_refresh_token = await encode(settings.auth.type_token.refresh, new_payload)
     new_access_token = await encode(settings.auth.type_token.access, new_payload)
     
-    response.headers.append("Authorization", f"Bearer {new_access_token}")
-    return status_success_200(new_refresh_token)
+    return status_success_200({"refresh": new_refresh_token, "access": new_access_token})
+    
 
 
 
