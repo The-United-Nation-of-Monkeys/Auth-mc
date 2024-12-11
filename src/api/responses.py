@@ -32,3 +32,5 @@ def status_success_201(detail: str | dict | list | None = None):
         return JSONResponse(status_code=status.HTTP_201_CREATED, content={"status": "success", "detail": detail})
     
     return JSONResponse(status_code=status.HTTP_201_CREATEDб, content={"status": "success"})
+
+    

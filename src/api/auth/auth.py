@@ -15,7 +15,7 @@ from src.config import settings, security
 from src.api.responses import *
 from src.api.auth.schemas import *
 from src.broker.producer import Broker
-from src.notification.mail import send_register_mail, send_info_special_register_mail
+from src.notification.mail import mail
 
 
 router = APIRouter(
@@ -79,14 +79,8 @@ async def get_access(user_data: SchemaRegister,
     except IntegrityError:
         return await status_error_409("invalid login")
 
-    if not role.special:
-        send_register_mail(recipient=user_data.login, name=user_data.name,
-                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_id)
-
-    else:
-        send_info_special_register_mail(recipient=user_data.login, name=user_data.name, 
-                                        link=f"{settings.server.SERVER_URL}/confirmation", id=user_id)
-
+    mail.send_register_mail(user_data.login, name=user_data.name, id=user_id, special=role.special)
+        
     detail.update(special=role.special)
     transfer_user_data = user_data.model_dump(exclude={"password"})
     transfer_user_data.update(
@@ -101,7 +95,8 @@ async def get_access(user_data: SchemaRegister,
 
 @router.get("/register/repeat", status_code=status.HTTP_204_NO_CONTENT)
 async def repeat_register(email: str, session: AsyncSession = Depends(get_session)) -> None:
-    query = select(Users.id, Users.active, Users.banned, Users.name).where(Users.login == email.lower())
+    query = (select(Users.id, Users.active, Users.banned, Users.name, Roles.special)
+    .join(Roles, Roles.id == Users.role_id).where(Users.login == email.lower()))
     user_info = await session.execute(query)
     user_info = user_info.mappings().first()
     
@@ -113,9 +108,7 @@ async def repeat_register(email: str, session: AsyncSession = Depends(get_sessio
     except TypeError:
         return status_error_400("account undefined")
         
-        
-    send_register_mail(recipient=email, name=user_info["name"],
-                       link=f"{settings.server.SERVER_URL}/confirmation", id=user_info["id"])
+    mail.send_register_mail(recipient=email, name=user_info.name, id=user_info.id, special=user_info.special)
         
     
 

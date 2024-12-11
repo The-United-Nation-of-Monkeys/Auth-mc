@@ -53,6 +53,7 @@ class Server(BaseModel):
             return f"{self.protocol}://{self.host}:{self.port}"
         else:
             return f"{self.protocol}://{self.host}"
+    version: str = os.environ.get("SERVER_VERSION")
 
 class Settings(BaseModel):
     database: DataBase = DataBase()
