@@ -25,13 +25,12 @@ router = APIRouter(
 
 
 @router.post("/login")
-async def login(user_data: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())], 
-                response: Response, 
+async def login(user_data: UserLogin, 
                 session: AsyncSession = Depends(get_session)
                 ):
     data = await session.execute(select(Users.password, Users.id, Users.active, Users.banned, Roles.role)
                                  .join(Roles, Roles.id == Users.role_id)
-                                 .where(Users.login == user_data.username.lower()))
+                                 .where(Users.login == user_data.login.lower()))
     
     data = data.mappings().first()
     
@@ -68,7 +67,7 @@ async def get_access(user_data: SchemaRegister,
     
     try:
         user_id = await session.execute(insert(Users).values({
-            Users.login: user_data.login.lower(),
+            Users.login: user_data.login.lower().strip(),
             Users.password: password,
             Users.role_id: role_id,
             Users.name: user_data.name

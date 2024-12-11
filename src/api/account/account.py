@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, Form
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update
+from sqlalchemy import update, select
 from pydantic import EmailStr
 
 from src.security.keys import generate_rand_key, encode_key, check_key
@@ -20,7 +20,9 @@ router = APIRouter(
 )
 
 @router.get("/new/password", status_code=status.HTTP_200_OK)
-async def new_password(email: EmailStr) -> None:
+async def new_password(email: EmailStr, session: AsyncSession = Depends(get_session)) -> None:
+    query = select(Users.name).where(Users.login == email)
+        
     secret_key = generate_rand_key()
     encode_secret_key = encode_key(secret_key)
     redis.set_value(key=email, value=encode_secret_key, expiration=600) 

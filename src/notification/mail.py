@@ -68,3 +68,27 @@ def send_switch_password_mail(recipient: str, code: str) -> None:
 
         finally:
             session.quit()
+            
+class Mail:
+    
+    def send_mail(subject: str, content: str, recipient: str) -> None:
+        with smtplib.SMTP_SSL("smtp.mail.ru", 465) as session:
+            session.login(settings.mail.mail, settings.mail.password)
+    
+            msg = MIMEMultipart()
+            msg["From"] = settings.mail.mail
+            msg["To"] = recipient
+            msg["Subject"] = subject
+            msg.attach(MIMEText(content, "html"))
+
+            try:
+                session.send_message(msg)
+
+            except smtplib.SMTPRecipientsRefused:
+                return status_error_400("invalid mail")
+
+            finally:
+                session.quit()
+    
+    def send_register_mail(recipient: str, name: str, link: str, id: str, special: bool) -> None:
+        pass

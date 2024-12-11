@@ -2,9 +2,6 @@ from pydantic import BaseModel, model_validator, EmailStr
 from typing import Literal
 
 from src.db.models.roles import BaseRoles
-from src.api.responses import status_error_400
-
-import enum
 
 class SchemaRegister(BaseModel):
     name: str
@@ -18,3 +15,7 @@ class SchemaRegister(BaseModel):
 class BearerTokenSchema(BaseModel):
     accessToken: str
     refreshToken: str
+    
+class UserLogin(BaseModel):
+    login: EmailStr
+    password: str
